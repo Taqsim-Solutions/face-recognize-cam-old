@@ -4,9 +4,9 @@ try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
         host="localhost",
-        database="postgres",
+        database="face",
         user="postgres",
-        password="1234"
+        password="postgres"
     )
     cur = conn.cursor()
 
