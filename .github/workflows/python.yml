@@ -28,7 +28,7 @@ jobs:
         with:
           file: Dockerfile
           push: true
-          tags: taqsim/face_recognition:latest
+          tags: taqsim/face_cam:latest
           no-cache: true 
   deploy:    
     runs-on: ubuntu-latest
@@ -46,5 +46,5 @@ jobs:
           script: |
             echo "Copying settings to server..."
             echo "Pulling latest docker image and restarting backend app..."
-            docker pull taqsim/face_recognize_cam:latest && docker restart face_recognize_cam
+            docker pull taqsim/face_cam:latest && docker restart face_cam
             
