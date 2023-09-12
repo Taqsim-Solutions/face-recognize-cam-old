@@ -1,9 +1,9 @@
-name: Python Package using Conda
+name: Python Face Recognize 
 
 on:
   push:
     branches:
-      - 'main1'
+      - 'main'
   workflow_dispatch:
 
 jobs:
