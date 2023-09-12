@@ -2,3 +2,4 @@ psycopg2
 face_recognition
 opencv-python
 requests
+python-dotenv

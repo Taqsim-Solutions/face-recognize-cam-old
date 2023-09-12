@@ -7,6 +7,13 @@ from simple_facerec import SimpleFacerec
 import uuid
 import requests
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
+camera_url = os.getenv("CAMERA_URL")
+database_host = os.getenv("DATABASE_HOST")
+database_name = os.getenv("DATABASE_NAME")
 
 images_folder = 'face_database/'
 time_limit = datetime.timedelta(seconds=30)
@@ -19,7 +26,7 @@ sfr.load_encoding_images("face_database/")
 # Load Camera
 #cap = cv2.VideoCapture(0)
 cap = cv2.VideoCapture()
-cap.open('http://10.66.66.3:8090/video.mp4?oids=1&size=640x480')
+cap.open(camera_url)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
@@ -28,8 +35,8 @@ known_faces = {}  # Dictionary to store the names and last detection times of al
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
-    host="185.183.243.254",
-    database="face",
+    host=database_host,
+    database=database_name,
     user="postgres",
     password="postgres"
 )

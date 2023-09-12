@@ -1,10 +1,17 @@
 import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+database_host = os.getenv("DATABASE_HOST")
+database_name = os.getenv("DATABASE_NAME")
 
 try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
-        host="185.183.243.254",
-        database="face",
+        host=database_host,
+        database=database_name,
         user="postgres",
         password="postgres"
     )
