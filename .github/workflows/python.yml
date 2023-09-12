@@ -46,6 +46,5 @@ jobs:
           script: |
             echo "Copying settings to server..."
             echo "Pulling latest docker image and restarting backend app..."
-            cd ~/fond 
-            docker pull taqsim/face_recognition:latest && docker restart face_recognition
+            docker pull taqsim/face_recognize_cam:latest && docker restart face_recognize_cam
             
