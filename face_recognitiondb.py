@@ -3,7 +3,7 @@ import psycopg2
 try:
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
-        host="localhost",
+        host="185.183.243.254",
         database="face",
         user="postgres",
         password="postgres"
@@ -12,7 +12,7 @@ try:
 
     # Create the face_temp table if it doesn't exist
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS face_recognition1(
+        CREATE TABLE IF NOT EXISTS face_recognition(
             id SERIAL PRIMARY KEY,
             time TIMESTAMP,
             name VARCHAR(255),
