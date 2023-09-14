@@ -14,9 +14,11 @@ load_dotenv()
 camera_url = os.getenv("CAMERA_URL")
 database_host = os.getenv("DATABASE_HOST")
 database_name = os.getenv("DATABASE_NAME")
+interval = os.getenv("INTERVAL")
+tol = os.getenv("TOL")
 
 images_folder = 'face_database/'
-time_limit = datetime.timedelta(seconds=30)
+time_limit = datetime.timedelta(seconds=interval)
 
 
 # Encode faces from a folder
@@ -83,7 +85,7 @@ try:
     while True:
         ret, frame = cap.read()
         # Perform face recognition
-        face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=0.50)
+        face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=tol)
 
         current_time = datetime.datetime.now()
 
