@@ -14,11 +14,11 @@ load_dotenv()
 camera_url = os.getenv("CAMERA_URL")
 database_host = os.getenv("DATABASE_HOST")
 database_name = os.getenv("DATABASE_NAME")
-interval = os.getenv("INTERVAL")
+#time_interval = os.getenv("INTERVAL")
 tol = os.getenv("TOL")
 
 images_folder = 'face_database/'
-time_limit = datetime.timedelta(seconds=interval)
+time_limit = datetime.timedelta(seconds=400)
 
 
 # Encode faces from a folder
