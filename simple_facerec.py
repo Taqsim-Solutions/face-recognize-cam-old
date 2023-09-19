@@ -6,6 +6,7 @@ import glob
 import numpy as np
 import uuid
 import time
+from psycopg2.extensions import register_adapter, AsIs
 
 class SimpleFacerec:
     def __init__(self):
@@ -96,18 +97,24 @@ class SimpleFacerec:
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
+        
+        
         face_names = []
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=tolerance)
             name = "Unknown"
 
             face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
-            best_match_index = np.argmin(face_distances)
-            if matches[best_match_index]:
-                name = self.known_face_names[best_match_index]
-            face_names.append(name)
+            #print(face_encoding, face_distances, "23")
+            
+            if np.size(face_distances) > 0:
+                best_match_index = np.argmin(face_distances)
+                #print(face_encoding, face_distances, "25")
+                if matches[best_match_index]:
+                    name = self.known_face_names[best_match_index]
+                face_names.append(name)
 
+        #print(face_locations, "24")
         face_locations = np.array(face_locations)
         face_locations = face_locations / self.frame_resizing
         return face_locations.astype(int), face_names
@@ -134,3 +141,4 @@ class SimpleFacerec:
 
     def encode_face(self, param):
         pass
+

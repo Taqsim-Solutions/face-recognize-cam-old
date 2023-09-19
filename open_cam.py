@@ -1,6 +1,10 @@
 import cv2
 
-video_capture = cv2.VideoCapture(0)
+#video_capture = cv2.VideoCapture(0)
+
+video_capture = cv2.VideoCapture()
+video_capture.open("http://10.66.66.3:8090/mjpeg")
+
 anterior = 0
 
 while True:

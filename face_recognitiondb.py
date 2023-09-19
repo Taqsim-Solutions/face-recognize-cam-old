@@ -7,14 +7,15 @@ load_dotenv()
 database_host = os.getenv("DATABASE_HOST")
 database_name = os.getenv("DATABASE_NAME")
 
+# Connect to the PostgreSQL database
+conn = psycopg2.connect(
+    host=database_host,
+    database=database_name,
+    user="postgres",
+    password="postgres"
+)
+
 try:
-    # Connect to the PostgreSQL database
-    conn = psycopg2.connect(
-        host=database_host,
-        database=database_name,
-        user="postgres",
-        password="postgres"
-    )
     cur = conn.cursor()
 
     # Create the face_temp table if it doesn't exist
@@ -29,8 +30,21 @@ try:
     """)
     conn.commit()
 
+    cur = conn.cursor()
+
+    # Create the face_temp table if it doesn't exist face_encodings (encodings_date, known_face_encodings, known_face_names)
+    cur.execute("""        
+            CREATE TABLE IF NOT EXISTS face_encodings(
+            id SERIAL PRIMARY KEY,
+            encodings_date TIMESTAMP,
+            known_face_encodings BYTEA,
+            known_face_names TEXT[]        
+        )
+    """)
+    conn.commit()
+
 except Exception as e:
     print(f"An error occurred: {str(e)}")
 
 finally:
-    conn.close()
+    conn.close()    

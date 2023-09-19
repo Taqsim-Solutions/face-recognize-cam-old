@@ -1,13 +1,18 @@
 import base64
 import cv2
 import os
-import datetime
+from datetime import datetime, timedelta
 import psycopg2
+import pickle
 from simple_facerec import SimpleFacerec
 import uuid
 import requests
 import json
+import numpy as np
 from dotenv import load_dotenv
+
+# Encode faces from a folder
+sfr = SimpleFacerec()
 
 load_dotenv()
 
@@ -15,25 +20,17 @@ camera_url = os.getenv("CAMERA_URL")
 database_host = os.getenv("DATABASE_HOST")
 database_name = os.getenv("DATABASE_NAME")
 #time_interval = os.getenv("INTERVAL")
-tol = os.getenv("TOL")
+#tol = os.getenv("TOL")
+
+print("1")
 
 images_folder = 'face_database/'
-time_limit = datetime.timedelta(seconds=400)
+time_limit = timedelta(seconds=400)
 
-
-# Encode faces from a folder
-sfr = SimpleFacerec()
-sfr.load_encoding_images("face_database/")
-
-# Load Camera
-#cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture()
-cap.open(camera_url)
-
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
-
-known_faces = {}  # Dictionary to store the names and last detection times of already detected faces
+#Encodings  db
+known_face_encodings = []
+known_face_names = []
+last_encoding_date = datetime.strptime('2023-02-28 14:30:00', '%Y-%m-%d %H:%M:%S')
 
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(
@@ -44,6 +41,59 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
+print("2")
+try:
+    sql_select_Query = "select encodings_date, known_face_encodings, known_face_names from face_encodings order by id desc LIMIT 1"
+    cursor = conn.cursor()
+    cursor.execute(sql_select_Query)
+
+    # get all records
+    records = cursor.fetchall()
+    for row in records:
+            last_encoding_date = row[0]
+            known_face_encodings = pickle.loads(row[1])
+            known_face_names = row[2]
+
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+
+print("3")
+
+if last_encoding_date.date() < datetime.today().date() :
+
+    sfr.load_encoding_images("face_database/")    
+    print("4")
+
+    if len(sfr.known_face_encodings) > 0 : 
+
+        try:
+            cur.execute("""
+                INSERT INTO face_encodings (encodings_date, known_face_encodings, known_face_names)
+                VALUES (%s, %s, %s)
+            """, (datetime.today(), pickle.dumps(sfr.known_face_encodings), sfr.known_face_names)
+            )
+            conn.commit()
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+
+else:
+    sfr.known_face_encodings = known_face_encodings
+    sfr.known_face_names = known_face_names
+    print("5")
+
+
+# Load Camera
+#cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture()
+cap.open(camera_url)
+print("6")
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
+
+known_faces = {}  # Dictionary to store the names and last detection times of already detected faces
+
+
+
 #Authorization
 url = 'https://face.taqsim.uz/api/authentication'
 myobj = {
@@ -53,7 +103,7 @@ myobj = {
 
 x = requests.post(url, json = myobj)
 
-
+print("7")
 # Function to send face values to Swagger API
 def send_face_values_to_api(face_values):
     api_url = "https://face.taqsim.uz/api/face-recognitons"
@@ -70,7 +120,7 @@ def send_face_values_to_api(face_values):
 
         try:
             response_json = response.json()
-            print("Response Body:", json.dumps(response_json, indent=2))  # Print the response body
+            #print("Response Body:", json.dumps(response_json, indent=2))  # Print the response body
         except json.JSONDecodeError:
             print("Failed to decode response JSON.")
 
@@ -80,14 +130,15 @@ def send_face_values_to_api(face_values):
             print(f"Failed to send face values to the API. Status code: {response.status_code}")
 
 
+print("8")
 try:
 
     while True:
         ret, frame = cap.read()
         # Perform face recognition
-        face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=tol)
+        face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=0.50)
 
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
 
         for (top, right, bottom, left), name in zip(face_locations, face_names):
             if not name:
@@ -110,7 +161,6 @@ try:
             if name in known_faces:
                 last_detection_time = known_faces[name]
                 time_difference = current_time - last_detection_time
-
 
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
@@ -182,12 +232,13 @@ try:
                 """, (timestamp, name, psycopg2.Binary(image_data)))
                 conn.commit()
 
+                print("10")
             # Display the name on the rectangle
-            #cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
 
         # Display the resulting frame
-        #cv2.imshow("Frame", frame)
+        cv2.imshow("Frame", frame)
 
         key = cv2.waitKey(1)
         if key == 27:
