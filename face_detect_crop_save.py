@@ -234,11 +234,11 @@ try:
 
                 print("10")
             # Display the name on the rectangle
-            cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
+            #cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
 
         # Display the resulting frame
-        cv2.imshow("Frame", frame)
+        #cv2.imshow("Frame", frame)
 
         key = cv2.waitKey(1)
         if key == 27:
