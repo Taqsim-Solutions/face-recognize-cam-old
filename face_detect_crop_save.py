@@ -37,7 +37,7 @@ conn = psycopg2.connect(
     host=database_host,
     database=database_name,
     user="postgres",
-    password="postgres"
+    password="Face2023Taqsim"
 )
 cur = conn.cursor()
 
