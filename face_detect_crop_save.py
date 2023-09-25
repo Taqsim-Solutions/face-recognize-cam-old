@@ -193,7 +193,7 @@ try:
 
                     # Insert the details into the PostgreSQL database
                     cur.execute("""
-                        INSERT INTO face_recognition (time, name, image_data)
+                        INSERT INTO face_images (time, name, image_data)
                         VALUES (%s, %s, %s)
                     """, (timestamp, name, psycopg2.Binary(image_data)))
                     conn.commit()
@@ -227,7 +227,7 @@ try:
 
                 # Insert the details into the PostgreSQL database
                 cur.execute("""
-                    INSERT INTO face_recognition (time, name, image_data)
+                    INSERT INTO face_images (time, name, image_data)
                     VALUES (%s, %s, %s)
                 """, (timestamp, name, psycopg2.Binary(image_data)))
                 conn.commit()

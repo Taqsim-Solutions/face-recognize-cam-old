@@ -20,7 +20,7 @@ try:
 
     # Create the face_temp table if it doesn't exist
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS face_recognition(
+        CREATE TABLE IF NOT EXISTS face_images(
             id SERIAL PRIMARY KEY,
             time TIMESTAMP,
             name VARCHAR(255),
