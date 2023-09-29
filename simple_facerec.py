@@ -4,9 +4,6 @@ import os
 import datetime
 import glob
 import numpy as np
-import uuid
-import time
-from psycopg2.extensions import register_adapter, AsIs
 
 class SimpleFacerec:
     def __init__(self):
@@ -51,7 +48,6 @@ class SimpleFacerec:
                             self.known_face_encodings.append(img_encoding)
                             self.known_face_names.append(dir_name)
 
-        print("Encoding images loadedvvvv")
 
     def detect_known_faces(self, frame: object) -> object:
         """
@@ -91,27 +87,33 @@ class SimpleFacerec:
     def detect_known_faces_tol(self, frame, tolerance):
         if frame is not None:
             small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
+            print("det",1)
         else:
-            self.frame_resizing = 0.5
+            self.frame_resizing = 0.25
+            print("det",2)
 
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        print("det",3)
         
         
         face_names = []
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=tolerance)
             name = "Unknown"
+            print("det",4)
 
             face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
             #print(face_encoding, face_distances, "23")
             
             if np.size(face_distances) > 0:
+                print("det",5)      
                 best_match_index = np.argmin(face_distances)
                 #print(face_encoding, face_distances, "25")
                 if matches[best_match_index]:
                     name = self.known_face_names[best_match_index]
+                    print("det",6)
                 face_names.append(name)
 
         #print(face_locations, "24")
@@ -142,3 +144,4 @@ class SimpleFacerec:
     def encode_face(self, param):
         pass
 
+    
