@@ -25,7 +25,7 @@ database_name = os.getenv("DATABASE_NAME")
 print("1")
 
 images_folder = 'face_database/'
-time_limit = timedelta(seconds=200).total_seconds()
+time_limit = timedelta(seconds=400).total_seconds()
 
 fdb.get_encodings()
 
