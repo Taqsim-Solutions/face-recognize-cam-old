@@ -1,6 +1,8 @@
 import numpy as np
 import requests
 import json
+import sys
+import os
 
 class FaceApi:
 
@@ -44,3 +46,28 @@ class FaceApi:
             print("Authorized Successfully.")
         else:
             print(f"Failed to Authorize. Status code: {response.status_code}")
+
+    # function to store the image which is read from the table 
+    def db_img(name, data): 
+        # out variable set to null 
+        out = None
+        s = name[len(name)-12:len(name)]
+
+        if not os.path.exists('face_database/'+s):
+            os.makedirs('face_database/'+s)
+            
+        try:             
+
+            # creating files in output folder for writing in binary mode 
+            out = open('face_database/'+s+'/'+name+'.jpg', 'wb') 
+            
+            # writing image data 
+            out.write(data) 
+            
+        # if exception raised 
+        except IOError: 
+            sys.exit(1) 
+            
+        # closing output file object 
+        finally: 
+            out.close() 

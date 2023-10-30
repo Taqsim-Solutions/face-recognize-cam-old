@@ -85,18 +85,16 @@ class SimpleFacerec:
         return face_locations.astype(int), face_names
 
     def detect_known_faces_tol(self, frame, tolerance):
-        if frame is not None:
-            small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
-            print("det",1)
-        else:
-            self.frame_resizing = 0.25
-            print("det",2)
+        #if frame is not None:
+        small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
+        #else:
+        #    self.frame_resizing = 0.25
+        #    print("det",2)
 
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-        print("det",3)
-        
+        print("det",3)        
         
         face_names = []
         for face_encoding in face_encodings:

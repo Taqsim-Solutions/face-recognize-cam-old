@@ -25,15 +25,17 @@ database_name = os.getenv("DATABASE_NAME")
 print("1")
 
 images_folder = 'face_database/'
-time_limit = timedelta(seconds=400).total_seconds()
+time_limit = timedelta(seconds=10).total_seconds()
 
 fdb.get_encodings()
 
 last_encoding_date = fdb.last_encoding_date
 
+
+
 if last_encoding_date.date() <= datetime.today().date() :
     
-    print("3.1")
+    FaceDB.save_image_files()
     sfr.load_encoding_images("face_database/")    
 
     if len(sfr.known_face_encodings) > 0 : 
@@ -62,13 +64,13 @@ known_faces = sfr.known_face_names #dict(enumerate())
 #Authorize to API
 fa.authorize()
 
-delay_time = 100
+delay_time = 10
 
 try:
 
     while True:
         ret, frame = cap.read()
-        print(cap.get(cv2.CAP_PROP_FPS))
+        
         # Perform face recognition
         print(2.1)
         face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=0.55)
@@ -78,14 +80,14 @@ try:
         for (top, right, bottom, left), name in zip(face_locations, face_names):
             print(2.3)
             # Draw a rectangle around the face
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            #cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
             # Convert the cropped image to grayscale
             crop_img_gray = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
 
             if name == 'Unknown':
                 name = str(uuid.uuid1())
-                folder_path = os.path.join(images_folder, name)
+                folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
             
             #cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
@@ -105,9 +107,8 @@ try:
                 print("We recognized")
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
-                    folder_path = os.path.join(images_folder, name)
+                    folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
 
-                    sfr.load_encoding_images(images_folder)
                     # Generate timestamp in standard format
                     timestamp_for = timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
                     timestamp_for = timestamp_for.replace(":","_").replace(" ","_").replace("-","_")
@@ -163,23 +164,23 @@ try:
 
         
         if len(face_names) == 0:           
-            name = str(uuid.uuid1())
-            folder_path = os.path.join(images_folder, name)
-            print("Not recognized")
+            # name = str(uuid.uuid1())
+            # folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
+            print("No face")
 
             # Generate timestamp in standard format
-            timestamp_for = timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
-            timestamp_for = timestamp_for.replace(":","_").replace(" ","_").replace("-","_")
-            filename = os.path.join(folder_path, f"{name}-{timestamp_for}.jpg")
+            # timestamp_for = timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
+            # timestamp_for = timestamp_for.replace(":","_").replace(" ","_").replace("-","_")
+            # filename = os.path.join(folder_path, f"{name}-{timestamp_for}.jpg")
 
 
-            # Save the grayscale image
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
-            crop_img_gray = cv2.cvtColor(frame[face_locations[0][2]:face_locations[0][3], face_locations[0][0]:face_locations[0][1]], cv2.COLOR_BGR2GRAY) 
+            # # Save the grayscale image
+            # if not os.path.exists(folder_path):
+            #     os.makedirs(folder_path)
+            # crop_img_gray = cv2.cvtColor(frame[face_locations[0][2]:face_locations[0][3], face_locations[0][0]:face_locations[0][1]], cv2.COLOR_BGR2GRAY) 
 
-            cv2.imwrite(filename, crop_img_gray)
-            print(f"Saved new grayscale face image to: {filename}")
+            # cv2.imwrite(filename, crop_img_gray)
+            # print(f"Saved new grayscale face image to: {filename}")
 
 
 
