@@ -9,5 +9,5 @@ RUN --mount=type=cache,target=target=/var/cache/apt \
 
 RUN --mount=type=cache,target=/root/.cache \
     pip install -r requirements.txt
-
-CMD ["python","/app/face_db.py"] & ["python","/app/face_cam.py"]
+#["python","/app/face_db.py"] & 
+CMD ["python","/app/face_db.py"] &  ["python","/app/face_cam.py"]

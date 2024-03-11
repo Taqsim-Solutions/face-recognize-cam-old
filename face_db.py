@@ -3,12 +3,12 @@ import os
 from dotenv import load_dotenv
 import pickle
 import sys 
-import api 
 from api import FaceApi
 
 load_dotenv()
 
 database_host = os.getenv("DATABASE_HOST")
+database_port = os.getenv("DATABASE_PORT")
 database_name = os.getenv("DATABASE_NAME")
 database_user = os.getenv("DATABASE_USER")
 database_password = os.getenv("DATABASE_PASSWORD")
@@ -19,8 +19,8 @@ def connect_db():
     
         try: 
             # Connecting to database using the PostgreSQL adapter 
-            con = psycopg2.connect(host=database_host, database=database_name, user='postgres', 
-                                password='Face2023Taqsim') 
+            con = psycopg2.connect(host=database_host, database=database_name, user=database_user, port=database_port,
+                                password=database_password) 
             
             # Creating the cursor object to run queries 
             cur = con.cursor() 
@@ -40,6 +40,7 @@ class FaceDB:
         self.encodings = None
         self.known_face_encodings = []
         self.known_face_names = []
+        self.insert_id = 0
 
         
     def save_image_files():        
@@ -108,14 +109,16 @@ class FaceDB:
         try:            
             cur.execute("""
                 INSERT INTO face_images (time, name, image_data)
-                VALUES (%s, %s, %s)
+                VALUES (%s, %s, %s)  RETURNING id;
             """, (timestamp, name, psycopg2.Binary(image_data)))
             con.commit()
+            self.insert_id = cur.fetchone()[0]
 
         except Exception as e:
             print(f"An error occurred: {str(e)}")
         
         finally:
+            print(self.insert_id)
             con.close()  
         # Insert the details into the PostgreSQL database
                     

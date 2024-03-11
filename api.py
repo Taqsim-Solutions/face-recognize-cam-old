@@ -1,4 +1,3 @@
-import numpy as np
 import requests
 import json
 import sys
@@ -37,7 +36,7 @@ class FaceApi:
         api_url = 'https://face.taqsim.uz/api/authentication'
         myobj = {
             "login": "admin",
-            "password": "123admin321"
+            "password": "admin"
         }
 
         response = requests.post(api_url, json = myobj)

@@ -7,13 +7,12 @@ from face_db import FaceDB
 from api import FaceApi
 import uuid
 from dotenv import load_dotenv
-import time
 
 # Encode faces from a folder
 sfr = SimpleFacerec()
 fdb = FaceDB()
 fa = FaceApi()
-
+print("load_dotenv")
 load_dotenv()
 
 camera_url = os.getenv("CAMERA_URL")
@@ -22,10 +21,10 @@ database_name = os.getenv("DATABASE_NAME")
 #time_interval = os.getenv("INTERVAL")
 #tol = os.getenv("TOL")
 
-print("1")
+print("face_database")
 
 images_folder = 'face_database/'
-time_limit = timedelta(seconds=10).total_seconds()
+time_limit = timedelta(seconds=180).total_seconds()
 
 fdb.get_encodings()
 
@@ -99,11 +98,6 @@ try:
                 last_detection_time = datetime.fromtimestamp(os.path.getmtime(os.path.join(images_folder, name)))
                 time_difference = (current_time - last_detection_time).total_seconds()
 
-                print(current_time)
-                print(last_detection_time)
-                print(time_difference)
-
-
                 print("We recognized")
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
@@ -119,22 +113,24 @@ try:
                         os.makedirs(folder_path)
 
                     cv2.imwrite(filename, crop_img_gray)
+                    print(name)
                     print(f"Saved updated face image to: {filename}")
-
-                    # Send face values to Swagger UI API
-                    # Encode the image data in base64
-                    with open(filename, 'rb') as img_file:
-                        fa.send_face_values_to_api([{"guid": name, "imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
 
 
                     # Read the image file as binary data
                     with open(filename, 'rb') as img_file:
                         image_data = img_file.read()
+                        
+                    fdb.insert_face_images(timestamp, name, image_data)  
+                    # Send face values to Swagger UI API
+                    # Encode the image data in base64
+                    with open(filename, 'rb') as img_file:
+                        fa.send_face_values_to_api([{"guid": name, "imageBase64": base64.b64encode(img_file.read()).decode('utf-8'), "pythonId": fdb.insert_id}])
+
                     
                     # Update the last detection time for the face
                     #known_faces[uuid.UUID(name).int] = current_time
-
-                    fdb.insert_face_images(timestamp, name, image_data)  
+                    
             else:
                 
                 print("Not recognized")
@@ -151,16 +147,17 @@ try:
                 cv2.imwrite(filename, crop_img_gray)
                 print(f"Saved new grayscale face image to: {filename}")
                 # Send face values to Swagger UI API
-
-                # Encode the image data in base64
-                with open(filename, 'rb') as img_file:
-                    fa.send_face_values_to_api([{"guid": name, "imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
-
+                print(name)
+                
                 # Read the grayscale image file as binary data
                 with open(filename, 'rb') as img_file:
                     image_data = img_file.read()
 
                 fdb.insert_face_images(timestamp, name, image_data)    
+                # Encode the image data in base64
+                with open(filename, 'rb') as img_file:
+                    fa.send_face_values_to_api([{"guid": name, "imageBase64": base64.b64encode(img_file.read()).decode('utf-8'), "pythonId": fdb.insert_id}])
+
 
         
         if len(face_names) == 0:           
