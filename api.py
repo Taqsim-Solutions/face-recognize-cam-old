@@ -31,12 +31,13 @@ class FaceApi:
             else:
                 print(f"Failed to send face values to the API. Status code: {response.status_code}")
 
+ 
     def authorize(self):
         #Authorization
         api_url = 'https://face.taqsim.uz/api/authentication'
         myobj = {
             "login": "admin",
-            "password": "admin"
+            "password": "123admin321"
         }
 
         response = requests.post(api_url, json = myobj)
