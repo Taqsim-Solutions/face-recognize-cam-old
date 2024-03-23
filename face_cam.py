@@ -31,10 +31,10 @@ fdb.get_encodings()
 last_encoding_date = fdb.last_encoding_date
 print(last_encoding_date)
 
-#if last_encoding_date == None:
-#    last_encoding_date = datetime.today().date()
+if last_encoding_date == None:
+    last_encoding_date = datetime.today()
 
-if last_encoding_date.date() < datetime.today().date() :    
+if last_encoding_date.date() <= datetime.today().date() :    
     FaceDB.save_image_files()
     sfr.load_encoding_images("face_database/")    
 
@@ -82,10 +82,35 @@ try:
             # Convert the cropped image to grayscale
             crop_img_gray = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
 
-            #if name == 'Unknown':
-            #    print("Unknown image!")
-                #name = str(uuid.uuid1())
-                #folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
+            if name == 'Unknown':
+                last_detection_time = datetime.fromtimestamp(os.path.getmtime(os.path.join(images_folder, name)))
+                time_difference = (current_time - last_detection_time).total_seconds()
+
+                # Check if the face has not been detected within the time limit
+                if time_difference >= time_limit:
+                    last_detection_time = current_time
+                    print("Unknown image!")
+                    name = str(uuid.uuid1())
+                    folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
+                    timestamp_for = timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                    timestamp_for = timestamp_for.replace(":","_").replace(" ","_").replace("-","_")
+                    filename = os.path.join(folder_path, f"{name}-{timestamp_for}.jpg")
+
+
+                    # Save the grayscale image
+                    if not os.path.exists(folder_path):
+                        os.makedirs(folder_path)
+
+                    cv2.imwrite(filename, crop_img_gray)
+                    print(f"Saved updated face image to: {filename}")
+
+                    with open(filename, 'rb') as img_file:
+                            image_data = img_file.read()
+
+                    #fdb.insert_face_images(timestamp, name, image_data)    
+                    # Encode the image data in base64
+                    with open(filename, 'rb') as img_file:
+                        fa.send_face_values_to_api([{"imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
                 
             #cv2.putText(frame, name, (left + 6, bottom - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
 
@@ -93,7 +118,7 @@ try:
             #print((datetime(1582, 10, 15) + timedelta(microseconds=uuid.UUID(name).time//10)) + timedelta(hours=5))
 
             # Check if the face is already known and detected
-            if name in face_names: 
+            elif name in face_names: 
                 last_detection_time = datetime.fromtimestamp(os.path.getmtime(os.path.join(images_folder, name)))
                 time_difference = (current_time - last_detection_time).total_seconds()
 
@@ -101,6 +126,7 @@ try:
                 
                 # Check if the face has not been detected within the time limit
                 if time_difference >= time_limit:
+                    last_detection_time = current_time
                     folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
 
                     # Generate timestamp in standard format
@@ -119,17 +145,19 @@ try:
                     # Read the image file as binary data
                     with open(filename, 'rb') as img_file:
                         image_data = img_file.read()
-                        
-                    fdb.insert_face_images(timestamp, name, fdb.insert_id, image_data)  
-                    # Send face values to Swagger UI API
-                    # Encode the image data in base64
-                    with open(filename, 'rb') as img_file:
-                        fa.send_face_values_to_api([{"pythonId": fdb.insert_id, "guid": name}])
+
+                    if(fdb.insert_id > 0):
+                        fdb.insert_face_images(timestamp, name, fdb.insert_id, image_data)  
+                        # Send face values to Swagger UI API
+                        # Encode the image data in base64
+                        with open(filename, 'rb') as img_file:
+                            fa.send_face_values_to_api([{"pythonId": fdb.insert_id, "guid": name}])
 
                     
                     # Update the last detection time for the face
                     #known_faces[uuid.UUID(name).int] = current_time
-                    
+                else:
+                    print("Time is not expired", time_difference)    
             else:
                 
                 print("Not recognized")
@@ -147,7 +175,7 @@ try:
                 print(f"Saved new grayscale face image to: {filename}")
                 # Send face values to Swagger UI API
                 print(name)
-                
+
                 # Read the grayscale image file as binary data
                 with open(filename, 'rb') as img_file:
                     image_data = img_file.read()
@@ -156,28 +184,12 @@ try:
                 # Encode the image data in base64
                 with open(filename, 'rb') as img_file:
                     fa.send_face_values_to_api([{"imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
-
-
         
         if len(face_names) == 0:           
-            # name = str(uuid.uuid1())
-            # folder_path = os.path.join(images_folder, name[len(name)-12:len(name)])
             print("No face")
 
             # Generate timestamp in standard format
-            # timestamp_for = timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
-            # timestamp_for = timestamp_for.replace(":","_").replace(" ","_").replace("-","_")
-            # filename = os.path.join(folder_path, f"{name}-{timestamp_for}.jpg")
-
-
-            # # Save the grayscale image
-            # if not os.path.exists(folder_path):
-            #     os.makedirs(folder_path)
-            # crop_img_gray = cv2.cvtColor(frame[face_locations[0][2]:face_locations[0][3], face_locations[0][0]:face_locations[0][1]], cv2.COLOR_BGR2GRAY) 
-
-            # cv2.imwrite(filename, crop_img_gray)
-            # print(f"Saved new grayscale face image to: {filename}")
-
+            
 
 
         # Display the resulting frame

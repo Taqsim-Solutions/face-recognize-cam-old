@@ -48,7 +48,7 @@ class FaceApi:
             print(f"Failed to Authorize. Status code: {response.status_code}")
 
     # function to store the image which is read from the table 
-    def db_img(name, data): 
+    def db_img(name, python_id, data): 
         # out variable set to null 
         out = None
         s = name[len(name)-12:len(name)]
@@ -59,7 +59,7 @@ class FaceApi:
         try:             
 
             # creating files in output folder for writing in binary mode 
-            out = open('face_database/'+s+'/'+name+'.jpg', 'wb') 
+            out = open('face_database/'+s+'/'+python_id+'_'+name+'.jpg', 'wb') 
             
             # writing image data 
             out.write(data) 

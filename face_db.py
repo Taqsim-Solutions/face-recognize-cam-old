@@ -49,10 +49,10 @@ class FaceDB:
         cur, con = connect_db() 
         try: 
             # Cursor object holding all image data from table 
-            cur.execute("SELECT guid, python_id, image_data FROM face_images") 
+            cur.execute("SELECT guid, id, image_data FROM face_images") 
             for row in cur.fetchall():                 
                 # the image data is written to file using db_img() for viewing 
-                FaceApi.db_img(row[0], row[1])
+                FaceApi.db_img(row[0], row[1], row[2])
 
         except(Exception, psycopg2.Error) as e: 
             # Print exception 
@@ -105,10 +105,11 @@ class FaceDB:
 
 
     def insert_face_images(self, timestamp, name, python_id, image_data):
+        print("INSERT INTO face_images")
         cur, con = connect_db() 
         try:            
             cur.execute("""
-                INSERT INTO face_images (time, guid, python_id, image_data)
+                INSERT INTO face_images (time, guid, id, image_data)
                 VALUES (%s, %s, %s, %s)  RETURNING id;
             """, (timestamp, name, python_id, psycopg2.Binary(image_data)))
             con.commit()
