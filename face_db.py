@@ -43,16 +43,17 @@ class FaceDB:
         self.insert_id = 0
 
         
-    def save_image_files():        
+    def save_image_files():         #last_encoding_date
         # calling the connect_db function for connection & cursor object 
-        print("save_image_files")
+        print("Saving new images to folder")
         cur, con = connect_db() 
         try: 
             # Cursor object holding all image data from table 
-            cur.execute("SELECT guid, id, image_data FROM face_images") 
+            cur.execute("SELECT name, image_data FROM face_images where is_deleted = false") 
+            #cur.execute("""SELECT name, id, image_data FROM face_images WHERE time > %s;""", (last_encoding_date,)) 
             for row in cur.fetchall():                 
                 # the image data is written to file using db_img() for viewing 
-                FaceApi.db_img(row[0], row[1], row[2])
+                FaceApi.db_img(row[0], row[1])
 
         except(Exception, psycopg2.Error) as e: 
             # Print exception 
@@ -104,14 +105,14 @@ class FaceDB:
             con.close()  
 
 
-    def insert_face_images(self, timestamp, name, python_id, image_data):
+    def insert_face_images(self, timestamp, name, image_data):
         print("INSERT INTO face_images")
         cur, con = connect_db() 
         try:            
             cur.execute("""
-                INSERT INTO face_images (time, guid, id, image_data)
-                VALUES (%s, %s, %s, %s)  RETURNING id;
-            """, (timestamp, name, python_id, psycopg2.Binary(image_data)))
+                INSERT INTO face_images (time, name, image_data)
+                VALUES (%s, %s, %s)  RETURNING id;
+            """, (timestamp, name, psycopg2.Binary(image_data)))
             con.commit()
             self.insert_id = cur.fetchone()[0]
 
@@ -120,7 +121,8 @@ class FaceDB:
         
         finally:
             print(self.insert_id)
-            con.close()  
+            con.close() 
+            return self.insert_id 
         # Insert the details into the PostgreSQL database
                     
     
@@ -133,7 +135,10 @@ class FaceDB:
                 time TIMESTAMP,
                 name VARCHAR(255),
                 guid UUID,
-                image_data BYTEA
+                image_data BYTEA,
+                added_by_user boolean NOT NULL DEFAULT false,
+                is_deleted boolean NOT NULL DEFAULT false,
+                CONSTRAINT face_images_pkey PRIMARY KEY (id)
             )
         """)
         con.commit()

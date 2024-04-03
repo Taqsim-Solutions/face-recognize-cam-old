@@ -39,14 +39,17 @@ class SimpleFacerec:
                         (filename, ext) = os.path.splitext(basename)
 
                         # Get encoding
-                        face_encodings = face_recognition.face_encodings(rgb_img)
+                        #face_encodings = face_recognition.face_encodings(rgb_img)
+                        
+                        face_locations = face_recognition.face_locations(rgb_img, number_of_times_to_upsample=2, model="hog")
+                        face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
 
                         if len(face_encodings) > 0:
                             img_encoding = face_encodings[0]
 
                             # Store file name and file encoding
                             self.known_face_encodings.append(img_encoding)
-                            self.known_face_names.append(dir_name)
+                            self.known_face_names.append(filename)
 
 
     def detect_known_faces(self, frame: object) -> object:
@@ -86,6 +89,8 @@ class SimpleFacerec:
 
     def detect_known_faces_tol(self, frame, tolerance):
         #if frame is not None:
+
+        #img = cv2.imread(imagePath)  from file
         small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
         #else:
         #    self.frame_resizing = 0.25
@@ -99,8 +104,13 @@ class SimpleFacerec:
         face_names = []
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=tolerance)
-            name = "Unknown"
-            print("compare_faces")
+            
+            if True in matches:
+                first_match_index = matches.index(True)
+                name = self.known_face_names[first_match_index]
+                print("first_match_index", first_match_index)
+                print("name: ", name)
+                face_names.append(name)
 
             face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
             #print(face_encoding, face_distances, "23")
@@ -108,12 +118,12 @@ class SimpleFacerec:
             if np.size(face_distances) > 0:
                 print("np.size")      
                 best_match_index = np.argmin(face_distances)
-                #print(face_encoding, face_distances, "25")
                 if matches[best_match_index]:
                     name = self.known_face_names[best_match_index]
-                    print("matches")
-                    
-            face_names.append(name)
+                    print("best_match_index ", best_match_index)
+                    face_names.append(name)
+            else:
+                face_names.append("Unknown")
 
         #print(face_locations, "24")
         face_locations = np.array(face_locations)

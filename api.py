@@ -2,26 +2,28 @@ import requests
 import json
 import sys
 import os
+from dotenv import load_dotenv
 
 class FaceApi:
-
+    
+    load_dotenv()
     # Function to send face values to Swagger API
-    def send_face_values_to_api(self, face_values):
+    def send_face_values_to_api_post(self, face_values):
         print("send_face_values_to_api")
-        api_url = "https://face.taqsim.uz/api/face-recognitons"
+        api_url = os.getenv("API_URL") + "face-recognitons"
         headers = {
             "accept": "*/*",
             "Content-Type": "application/json"
         }
-
+        error = ""
         for face_value in face_values:
-            response = requests.post(api_url, json=face_value, headers=headers, verify=True)
+            response = requests.post(api_url, json=face_value, headers=headers, verify=False)
 
             print("Request Body:", json.dumps(face_value, indent=2))  # Print the request body
             print("Status Code:", response.status_code)  # Print the status code
 
             try:
-                response_json = response.json()
+                error = response.json()
                 #print("Response Body:", json.dumps(response_json, indent=2))  # Print the response body
             except json.JSONDecodeError:
                 print("Failed to decode response JSON.")
@@ -29,12 +31,38 @@ class FaceApi:
             if response.status_code == 200:
                 print("Face values sent successfully to the API.")
             else:
-                print(f"Failed to send face values to the API. Status code: {response.status_code}")
+                print(f"Failed to send face values to the API. Status code: {response.status_code} and {error}")
+
+    def send_face_values_to_api_put(self, face_values):
+            print("send_face_values_to_api")            
+            api_url = os.getenv("API_URL") + "face-recognitons"
+            headers = {
+                "accept": "*/*",
+                "Content-Type": "application/json"
+            }
+            error = ""
+            for face_value in face_values:
+                print("request", requests.put(api_url, json=face_value, headers=headers, verify=False))
+                response = requests.put(api_url, json=face_value, headers=headers, verify=False)
+
+                print("Request Body:", json.dumps(face_value, indent=2))  # Print the request body
+                print("Status Code:", response.status_code)  # Print the status code
+
+                try:
+                    error = response.json()
+                    #print("Response Body:", json.dumps(response_json, indent=2))  # Print the response body
+                except json.JSONDecodeError:
+                    print("Failed to decode response JSON.")
+
+                if response.status_code == 200:
+                    print("Face values sent successfully to the API.")
+                else:
+                    print(f"Failed to send face values to the API. Status code: {response.status_code} and {error}")
 
  
     def authorize(self):
         #Authorization
-        api_url = 'https://face.taqsim.uz/api/authentication'
+        api_url = os.getenv("API_URL") + "authentication"
         myobj = {
             "login": "admin",
             "password": "123admin321"
@@ -48,26 +76,21 @@ class FaceApi:
             print(f"Failed to Authorize. Status code: {response.status_code}")
 
     # function to store the image which is read from the table 
-    def db_img(name, python_id, data): 
-        # out variable set to null 
-        out = None
-        s = name[len(name)-12:len(name)]
+    def db_img(name, data): 
 
-        if not os.path.exists('face_database/'+s):
-            os.makedirs('face_database/'+s)
+        if not os.path.exists('face_database/'+name):
+            os.makedirs('face_database/'+name)
             
         try:             
 
-            # creating files in output folder for writing in binary mode 
-            out = open('face_database/'+s+'/'+python_id+'_'+name+'.jpg', 'wb') 
-            
-            # writing image data 
-            out.write(data) 
-            
+            # creating files in output folder for writing in binary mode             
+            file_path = os.path.join("face_database/", f"{name}/{name}.jpg")
+
+            with open(file_path, "wb") as file:
+                file.write(data)
+                        
         # if exception raised 
         except IOError: 
-            sys.exit(1) 
-            
-        # closing output file object 
-        finally: 
-            out.close() 
+            sys.exit(1)        
+        finally:
+            print(name, " saved")
