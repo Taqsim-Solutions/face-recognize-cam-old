@@ -97,7 +97,7 @@ class SimpleFacerec:
         #    print("det",2)
 
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
+        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=3, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         print("detect_known_faces_tol")        
         
@@ -105,25 +105,26 @@ class SimpleFacerec:
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=tolerance)
             
-            if True in matches:
-                first_match_index = matches.index(True)
-                name = self.known_face_names[first_match_index]
-                print("first_match_index", first_match_index)
-                print("name: ", name)
-                face_names.append(name)
+            #if True in matches:
+            #    first_match_index = matches.index(True)
+            #    name = self.known_face_names[first_match_index]
+            #    print("first_match_index", first_match_index)
+            #    print("name: ", name)
+            #    face_names.append(name)
 
             face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
             #print(face_encoding, face_distances, "23")
             
             if np.size(face_distances) > 0:
-                print("np.size")      
                 best_match_index = np.argmin(face_distances)
+                print("best_match_index ", best_match_index)
+
                 if matches[best_match_index]:
                     name = self.known_face_names[best_match_index]
-                    print("best_match_index ", best_match_index)
-                    face_names.append(name)
-            else:
-                face_names.append("Unknown")
+                    face_names.append(name)                
+                    print("name  ", name)
+                else:
+                    face_names.append("Unknown")
 
         #print(face_locations, "24")
         face_locations = np.array(face_locations)

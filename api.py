@@ -54,10 +54,15 @@ class FaceApi:
                 except json.JSONDecodeError:
                     print("Failed to decode response JSON.")
 
-                if response.status_code == 200:
-                    print("Face values sent successfully to the API.")
-                else:
-                    print(f"Failed to send face values to the API. Status code: {response.status_code} and {error}")
+                finally:                    
+                    if response.status_code == 200:
+                        print("Face values sent successfully to the API.")
+                    else:
+                        print(f"Failed to send face values to the API. Status code: {response.status_code} and {error}")    
+                    
+                    return response.status_code
+            
+    
 
  
     def authorize(self):
@@ -76,7 +81,7 @@ class FaceApi:
             print(f"Failed to Authorize. Status code: {response.status_code}")
 
     # function to store the image which is read from the table 
-    def db_img(name, data): 
+    def db_img(name, data, id): 
 
         if not os.path.exists('face_database/'+name):
             os.makedirs('face_database/'+name)
@@ -84,7 +89,7 @@ class FaceApi:
         try:             
 
             # creating files in output folder for writing in binary mode             
-            file_path = os.path.join("face_database/", f"{name}/{name}.jpg")
+            file_path = os.path.join("face_database/", f"{name}/{name}_{id}.jpg")
 
             with open(file_path, "wb") as file:
                 file.write(data)

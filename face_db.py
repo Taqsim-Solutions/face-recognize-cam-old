@@ -49,11 +49,11 @@ class FaceDB:
         cur, con = connect_db() 
         try: 
             # Cursor object holding all image data from table 
-            cur.execute("SELECT name, image_data FROM face_images where is_deleted = false") 
+            cur.execute("SELECT name, image_data, id FROM face_images where is_deleted = false") 
             #cur.execute("""SELECT name, id, image_data FROM face_images WHERE time > %s;""", (last_encoding_date,)) 
             for row in cur.fetchall():                 
                 # the image data is written to file using db_img() for viewing 
-                FaceApi.db_img(row[0], row[1])
+                FaceApi.db_img(row[0], row[1], row[2])
 
         except(Exception, psycopg2.Error) as e: 
             # Print exception 

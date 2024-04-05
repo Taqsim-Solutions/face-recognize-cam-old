@@ -48,7 +48,7 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
 
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')) # depends on fourcc available camera
-    cap.set(cv2.CAP_PROP_FPS, 10)
+    cap.set(cv2.CAP_PROP_FPS, 5)
 
     #Authorize to API
     fa.authorize()
@@ -73,12 +73,15 @@ def main():
                 # Convert the cropped image to grayscale
                 crop_img = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
 
+                if not os.path.exists(folder_path):
+                    os.makedirs(folder_path)
+
                 if name == 'Unknown':
+                    
                     folder_path = os.path.join(images_folder, name)
-                    filename = os.path.join(folder_path, f"{name}.jpg")
 
                     #current_time = datetime.now()
-                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(filename))
+                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
                     time_difference = (datetime.now() - last_detection_time).total_seconds()
                     
                     print(time_difference)
@@ -92,6 +95,8 @@ def main():
                         if not os.path.exists(folder_path):
                             os.makedirs(folder_path)
 
+                        filename = os.path.join(folder_path, "Unknown.jpg")
+                        
                         cv2.imwrite(filename, crop_img)
                         print(f"The saved face image is: {filename}")
 
@@ -101,18 +106,17 @@ def main():
                         # Encode the image data in base64
                         with open(filename, 'rb') as img_file:
                             fa.send_face_values_to_api_post([{"imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
-
-                        last_time = datetime.now()
+                            os.utime(folder_path)
                     
                 # Check if the face is already known and detected
                 elif name in face_names: 
-                    folder_path = os.path.join(images_folder, name)
+                    folder_path = os.path.join(images_folder, name.split('_')[0])
                     filename = os.path.join(folder_path, f"{name}.jpg")
 
-                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(filename))
+                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
                     #time_difference = (current_time - last_detection_time).total_seconds()                    
                     time_difference = (datetime.now() - last_detection_time).total_seconds()
-
+                    
                     print("We recognized: " + name)
                     
                     # Check if the face has not been detected within the time limit
@@ -127,16 +131,20 @@ def main():
                             image_data = img_file.read()
 
                         #print(name)
-                        #insert_id = name.split('_')[1]
-
-                        insert_id = fdb.insert_face_images(datetime.now(), name, image_data)  
+                        insert_id = name.split('_')[1]
+ 
                         # Send face values to Swagger UI API
                         # Encode the image data in base64
+                        status_code = 111
                         with open(filename, 'rb') as img_file:
-                            fa.send_face_values_to_api_put([{"pythonId": insert_id, "guid": name}])
+                            status_code = fa.send_face_values_to_api_put([{"pythonId": insert_id, "guid": name.split('_')[0]}])
+                        
+                        if status_code == 200:
+                            fdb.insert_face_images(datetime.now(), name.split('_')[0], image_data) 
+                            os.utime(folder_path)
 
                         
-                        last_time = datetime.now()
+                        #last_time = datetime.now()
                         # Update the last detection time for the face
                         #known_faces[uuid.UUID(name).int] = current_time
                     else:
