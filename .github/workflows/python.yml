@@ -1,4 +1,4 @@
-name: Python Face Recognize 
+name: Python Face Recognize Local
 
 on:
   push:
@@ -30,6 +30,7 @@ jobs:
           push: true
           tags: taqsim/face_cam:latest
           no-cache: true 
+          
   #deploy:    
   #  runs-on: ubuntu-latest
   #  needs: dockerize
