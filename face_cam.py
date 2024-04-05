@@ -73,12 +73,12 @@ def main():
                 # Convert the cropped image to grayscale
                 crop_img = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
 
-                if not os.path.exists(folder_path):
-                    os.makedirs(folder_path)
-
                 if name == 'Unknown':
                     
                     folder_path = os.path.join(images_folder, name)
+
+                    if not os.path.exists(folder_path):
+                        os.makedirs(folder_path)
 
                     #current_time = datetime.now()
                     last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
