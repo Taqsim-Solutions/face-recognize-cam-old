@@ -35,7 +35,7 @@ def main():
 
     print("last_encoding_date is ", last_encoding_date)
 
-    if last_encoding_date.date() < datetime.today():
+    if last_encoding_date < datetime.combine(date.today(), datetime.min.time()):
         FaceDB.save_image_files() #last_encoding_date
         sfr.load_encoding_images("face_database/")    
 
