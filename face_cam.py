@@ -2,7 +2,9 @@ import base64
 import cv2
 import os
 import decimal
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import date
+from datetime import timedelta
 from simple_facerec import SimpleFacerec
 from face_db import FaceDB
 from api import FaceApi
@@ -27,8 +29,9 @@ def main():
     fdb.get_encodings()
 
     last_encoding_date = fdb.last_encoding_date
+    
     if last_encoding_date == None:
-        last_encoding_date = datetime.today() # - datetime.timedelta(days=1)
+        last_encoding_date = date.today() - timedelta(days = 1)
 
     print("last_encoding_date is ", last_encoding_date)
 
