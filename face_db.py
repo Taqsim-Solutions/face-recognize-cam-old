@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import pickle
 import sys 
 from api import FaceApi
+from datetime import datetime
 
 load_dotenv()
 
@@ -74,7 +75,7 @@ class FaceDB:
             # get all records
             records = cur.fetchall()
             for row in records:
-                self.last_encoding_date = row[0]
+                self.last_encoding_date = datetime.strptime(date_str, row[0]).date()
                 self.known_face_encodings = pickle.loads(row[1])
                 self.known_face_names = row[2]
 
