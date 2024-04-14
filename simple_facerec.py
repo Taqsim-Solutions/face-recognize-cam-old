@@ -42,7 +42,7 @@ class SimpleFacerec:
                         # Get encoding
                         #face_encodings = face_recognition.face_encodings(rgb_img)
                         
-                        face_locations = face_recognition.face_locations(rgb_img, number_of_times_to_upsample=1, model="hog")
+                        face_locations = face_recognition.face_locations(rgb_img, number_of_times_to_upsample=2, model="hog")
                         face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
 
                         if len(face_encodings) > 0:
@@ -119,7 +119,7 @@ class SimpleFacerec:
         #    print("det",2)
 
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=1, model="hog")
+        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         print("detect_known_faces_tol")        
         
