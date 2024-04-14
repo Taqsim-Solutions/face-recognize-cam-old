@@ -37,7 +37,7 @@ def main():
 
     if last_encoding_date < date.today():
         FaceDB.save_image_files() #last_encoding_date
-        sfr.load_encoding_images("face_database/")    
+        sfr.svc_load_encoding_images("face_database/")    
 
     if len(sfr.known_face_encodings) > 0 : 
         fdb.insert_encodings(datetime.today(), sfr.known_face_encodings, sfr.known_face_names)
@@ -65,7 +65,7 @@ def main():
             
             # Perform face recognition
             print("While camera detecting...")
-            face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=tol)
+            face_locations, face_names = sfr.svc_detect_faces_tol(frame, tolerance=tol)
             
 
             for (top, right, bottom, left), name in zip(face_locations, face_names):

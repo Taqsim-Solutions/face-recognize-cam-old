@@ -1,5 +1,6 @@
 import face_recognition
 import cv2
+from sklearn import svm
 import os
 import datetime
 import glob
@@ -50,6 +51,27 @@ class SimpleFacerec:
                             # Store file name and file encoding
                             self.known_face_encodings.append(img_encoding)
                             self.known_face_names.append(filename)
+
+
+    def svc_load_encoding_images(self, images_path):
+        for root, dirs, files in os.walk(images_path):    
+            for person in dirs:
+                pix = os.listdir(images_path + "/" + person)
+                # Loop through each training image for the current person
+                for person_img in pix:
+                    # Get the face encodings for the face in each image file
+                    face = face_recognition.load_image_file(images_path + "/" + person + "/" + person_img)
+                    face_bounding_boxes = face_recognition.face_locations(face)
+
+                    #If training image contains exactly one face
+                    if len(face_bounding_boxes) == 1:
+                        face_enc = face_recognition.face_encodings(face)[0]
+                        # Add face encoding for current image with corresponding label (name) to the training data
+                        self.known_face_encodings.append(face_enc)
+                        self.known_face_names.append(person)
+                    else:
+                        print(person + "/" + person_img + " was skipped and can't be used for training")
+        
 
 
     def detect_known_faces(self, frame: object) -> object:
@@ -130,6 +152,40 @@ class SimpleFacerec:
         face_locations = np.array(face_locations)
         face_locations = face_locations / self.frame_resizing
         return face_locations.astype(int), face_names
+
+    def svc_detect_faces_tol(self, frame, tolerance):
+
+        small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
+        #else:
+        #    self.frame_resizing = 0.25
+        #    print("det",2)
+
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)        
+
+        # Create and train the SVC classifier
+        clf = svm.SVC(gamma='scale')
+        clf.fit(self.known_face_encodings,self.known_face_names)   
+        
+        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=1, model="hog")
+        #face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        
+        no = len(face_locations)
+        print("Number of faces detected: ", no)
+        
+        face_names = []
+
+        # Predict all the faces in the test image using the trained classifier
+        print("Found:")
+        for i in range(no):
+            test_image_enc = face_recognition.face_encodings(rgb_small_frame)[i]
+            name = clf.predict([test_image_enc])
+            print(*name)
+            face_names.append(name)
+        
+        face_locations = np.array(face_locations)
+        face_locations = face_locations / self.frame_resizing
+        return face_locations.astype(int), face_names
+
 
     @staticmethod
     def save_cropped_face(frame, face_coordinates, name, images_folder):
