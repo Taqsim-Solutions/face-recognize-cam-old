@@ -9,6 +9,7 @@ from simple_facerec import SimpleFacerec
 from face_db import FaceDB
 from api import FaceApi
 from dotenv import load_dotenv
+import glob
 
 def main():
 
@@ -19,11 +20,11 @@ def main():
     print("load Environment")
     load_dotenv()
 
-    camera_url = os.getenv("CAMERA_URL")
     time_interval = int(os.getenv("INTERVAL"))
     tol = decimal.Decimal(os.getenv("TOL"))
 
     images_folder = 'face_database/'
+    ftp_images = 'ftp/'
     time_limit = timedelta(seconds=time_interval).total_seconds()
 
     fdb.get_encodings()
@@ -42,121 +43,110 @@ def main():
     if len(sfr.known_face_encodings) > 0 : 
         fdb.insert_encodings(datetime.today(), sfr.known_face_encodings, sfr.known_face_names)
 
-    # Load Camera
-    #cap = cv2.VideoCapture(0)  
-    print("Camera face detect starting")
-    cap = cv2.VideoCapture()
-    cap.open(camera_url)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Set the desired width
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  # Set the desired height
-
-    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')) # depends on fourcc available camera
-    cap.set(cv2.CAP_PROP_FPS, 5)
-
     #Authorize to API
     fa.authorize()
 
     delay_time = 10
-    last_time= datetime.now()
     try:
 
-        while True:
-            ret, frame = cap.read()
-            
-            # Perform face recognition
-            print("While camera detecting...")
-            face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=tol)
-            
 
-            for (top, right, bottom, left), name in zip(face_locations, face_names):
-                # Draw a rectangle around the face
-                #cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-                
-                #print("Convert to grayscale")
-                # Convert the cropped image to grayscale
-                crop_img = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
+        #TODO 
+        # 1.Load Images from FTP folder
 
-                if name == 'Unknown':
-                    
-                    folder_path = os.path.join(images_folder, name)
+        for root, dirs, files in os.walk(ftp_images):
+            for dir_name in dirs:
+                dir_path = os.path.join(root, dir_name)
+                images = glob.glob(os.path.join(dir_path, "*.jpg"))
 
-                    if not os.path.exists(folder_path):
-                        os.makedirs(folder_path)
+                if len(images) > 0:
+                    print("{} encoding images found in '{}'.".format(len(images), dir_name))
 
-                    #current_time = datetime.now()
-                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
-                    time_difference = (datetime.now() - last_detection_time).total_seconds()
-                    
-                    print(time_difference)
-                    
-                    # Check if the face has not been detected within the time limit
-                    if time_difference >= time_limit:
+                    for img_path in images:
+                        img = cv2.imread(img_path)
+                        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-                        print("Unknown image!")
+                        # Get the filename only from the initial file path.
+                        basename = os.path.basename(img_path)
+                        (filename, ext) = os.path.splitext(basename)
+                        img_date = datetime.fromtimestamp(os.path.getmtime(img_path))
 
-                        # Save the image
-                        if not os.path.exists(folder_path):
-                            os.makedirs(folder_path)
+                        face_locations, face_names = sfr.image_detect_known_faces_tol(rgb_img, tolerance=tol)
 
-                        filename = os.path.join(folder_path, "Unknown.jpg")
+                        for (top, right, bottom, left), name in zip(face_locations, face_names):
                         
-                        cv2.imwrite(filename, crop_img)
-                        print(f"The saved face image is: {filename}")
+                            if name == 'Unknown':
+                                
+                                time_difference = (datetime.now() - img_date).total_seconds()
+                                
+                                print(time_difference)
+                                
+                                # Check if the face has not been detected within the time limit
+                                if time_difference >= time_limit:
 
-                        with open(filename, 'rb') as img_file:
-                                image_data = img_file.read()
+                                    print("Unknown image!")
 
-                        # Encode the image data in base64
-                        with open(filename, 'rb') as img_file:
-                            fa.send_face_values_to_api_post([{"imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
-                            os.utime(folder_path)
-                    
-                # Check if the face is already known and detected
-                elif name in face_names: 
-                    folder_path = os.path.join(images_folder, name.split('_')[0])
-                    filename = os.path.join(folder_path, f"{name}.jpg")
+                                    # Save the image
+                                    if not os.path.exists(folder_path):
+                                        os.makedirs(folder_path)
 
-                    last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
-                    #time_difference = (current_time - last_detection_time).total_seconds()                    
-                    time_difference = (datetime.now() - last_detection_time).total_seconds()
-                    
-                    print("We recognized: " + name)
-                    
-                    # Check if the face has not been detected within the time limit
-                    if time_difference >= time_limit:
-                                             
+                                    filename = os.path.join(folder_path, "Unknown.jpg")
+                                    
+                                    cv2.imwrite(filename, rgb_img)
+                                    print(f"The saved face image is: {filename}")
 
-                        cv2.imwrite(filename, crop_img)
-                        print(f"The saved face image is: {filename}")
+                                    with open(filename, 'rb') as img_file:
+                                            image_data = img_file.read()
 
-                        # Read the image file as binary data
-                        with open(filename, 'rb') as img_file:
-                            image_data = img_file.read()
+                                    # Encode the image data in base64
+                                    with open(filename, 'rb') as img_file:
+                                        fa.send_face_values_to_api_post([{"imageBase64": base64.b64encode(img_file.read()).decode('utf-8')}])
+                                        os.utime(folder_path)
+                                
+                            # Check if the face is already known and detected
+                            elif name in face_names: 
+                                folder_path = os.path.join(images_folder, name.split('_')[0])
+                                filename = os.path.join(folder_path, f"{name}.jpg")
 
-                        #print(name)
-                        insert_id = name.split('_')[1]
- 
-                        # Send face values to Swagger UI API
-                        # Encode the image data in base64
-                        status_code = 111
-                        with open(filename, 'rb') as img_file:
-                            status_code = fa.send_face_values_to_api_put([{"pythonId": insert_id, "guid": name.split('_')[0]}])
-                        
-                        if status_code == 200:
-                            fdb.insert_face_images(datetime.now(), name.split('_')[0], image_data) 
-                            os.utime(folder_path)
+                                last_detection_time = datetime.fromtimestamp(os.path.getmtime(folder_path))
+                                #time_difference = (current_time - last_detection_time).total_seconds()                    
+                                time_difference = (datetime.now() - last_detection_time).total_seconds()
+                                
+                                print("We recognized: " + name)
+                                
+                                # Check if the face has not been detected within the time limit
+                                if time_difference >= time_limit:
+                                                        
 
-                        
-                        #last_time = datetime.now()
-                        # Update the last detection time for the face
-                        #known_faces[uuid.UUID(name).int] = current_time
-                    else:
-                        print("Time is not expired", time_difference)                    
+                                    cv2.imwrite(filename, crop_img)
+                                    print(f"The saved face image is: {filename}")
+
+                                    # Read the image file as binary data
+                                    with open(filename, 'rb') as img_file:
+                                        image_data = img_file.read()
+
+                                    #print(name)
+                                    insert_id = name.split('_')[1]
             
-            if len(face_names) == 0:           
-                print("No face")
+                                    # Send face values to Swagger UI API
+                                    # Encode the image data in base64
+                                    status_code = 111
+                                    with open(filename, 'rb') as img_file:
+                                        status_code = fa.send_face_values_to_api_put([{"pythonId": insert_id, "guid": name.split('_')[0]}])
+                                    
+                                    if status_code == 200:
+                                        fdb.insert_face_images(img_date, name.split('_')[0], image_data) 
+                                        os.utime(folder_path)
 
-                # Generate timestamp in standard format
+                                    
+                                else:
+                                    print("Time is not expired", time_difference)                    
+                    
+                        if len(face_names) == 0:           
+                            print("No face")
+    
+
+        # 5.Remove Image from FTP folder
+
                 
 
 
@@ -171,7 +161,6 @@ def main():
         print(f"Error occurred : {str(e)}")
 
     finally:
-        cap.release()
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
