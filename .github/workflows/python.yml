@@ -3,7 +3,7 @@ name: Python Face Recognize Local1
 on:
   push:
     branches:
-      - 'main'
+      - 'photo_cam'
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         with:
           file: Dockerfile
           push: true
-          tags: taqsim/face_cam:latest
+          tags: taqsim/face_cam:photo
           no-cache: true 
           
   #deploy:    
