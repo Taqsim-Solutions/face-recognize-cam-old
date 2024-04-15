@@ -65,7 +65,7 @@ def main():
             
             # Perform face recognition
             print("While camera detecting...")
-            face_locations, face_names = sfr.svc_detect_faces_tol(frame, tolerance=tol)
+            face_locations, face_names = sfr.detect_known_faces_tol(frame, tolerance=tol)
             
 
             for (top, right, bottom, left), name in zip(face_locations, face_names):

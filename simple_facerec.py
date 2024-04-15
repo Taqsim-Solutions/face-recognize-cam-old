@@ -174,7 +174,7 @@ class SimpleFacerec:
         
         face_names = []
 
-        # Predict all the faces in the test image using the trained classifier
+        # Predict all the faces in the image using the trained classifier
         print("Found:")
         for i in range(no):
             test_image_enc = face_recognition.face_encodings(rgb_small_frame)[i]
