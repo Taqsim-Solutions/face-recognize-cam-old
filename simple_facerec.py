@@ -213,7 +213,7 @@ class SimpleFacerec:
 
     def image_detect_known_faces_tol(self, rgb_small_frame, tolerance):
         
-        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=2, model="hog")
+        face_locations = face_recognition.face_locations(rgb_small_frame, number_of_times_to_upsample=1, model="hog")
         face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         print("image_detect_known_faces_tol")        
         
@@ -221,6 +221,8 @@ class SimpleFacerec:
         for face_encoding in face_encodings:
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding, tolerance=tolerance)
             
+            name = "Unknown"
+
             face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
             #print(face_encoding, face_distances, "23")
             
@@ -234,8 +236,10 @@ class SimpleFacerec:
                     print("name  ", name)
                 else:
                     face_names.append("Unknown")
+                
+            else:
+                face_names.append("Unknown")
 
         #print(face_locations, "24")
-        face_locations = np.array(face_locations)
-        face_locations = face_locations / self.frame_resizing
-        return face_locations.astype(int), face_names
+        
+        return face_locations, face_names
