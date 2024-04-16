@@ -53,12 +53,12 @@ def main():
     try:
 
         for root, dirs, files in os.walk(ftp_images):
-            for dir_name in dirs:
-                dir_path = os.path.join(root, dir_name)
-                images = glob.glob(os.path.join(dir_path, "*.jpg"))
+#            for dir_name in dirs:
+#                dir_path = os.path.join(root, dir_name)
+                images = glob.glob(os.path.join(root, "*.jpg"))
 
                 if len(images) > 0:
-                    print("{} encoding images found in '{}'.".format(len(images), dir_name))
+                    print("{} encoding images found in '{}'.".format(len(images), root))
 
                     for img_path in images:
                         img = cv2.imread(img_path)
