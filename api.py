@@ -73,7 +73,7 @@ class FaceApi:
             "password": "123admin321"
         }
 
-        response = requests.post(api_url, json = myobj)
+        response = requests.post(api_url, json = myobj, verify=False)
 
         if response.status_code == 200:
             print("Authorized Successfully.")
