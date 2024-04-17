@@ -50,7 +50,7 @@ class FaceDB:
         cur, con = connect_db() 
         try: 
             # Cursor object holding all image data from table 
-            cur.execute("SELECT name, image_data, id FROM face_images where is_deleted = false") 
+            cur.execute("SELECT name, image_data, id FROM face_images where is_deleted = false and added_by_user = true") 
             #cur.execute("""SELECT name, id, image_data FROM face_images WHERE time > %s;""", (last_encoding_date,)) 
             for row in cur.fetchall():                 
                 # the image data is written to file using db_img() for viewing 
