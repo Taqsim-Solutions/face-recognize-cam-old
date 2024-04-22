@@ -96,7 +96,7 @@ def main():
 
                                 print("Unknown image!")
                                 
-                                crop_img = cv2.cvtColor(rgb_img[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
+                                crop_img = cv2.cvtColor(rgb_img[top:bottom, left:right], cv2.COLOR_BGR2RGB)
                                 cv2.imwrite(filename+".jpg", crop_img)
                                 
                                 # Encode the image data in base64

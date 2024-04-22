@@ -199,7 +199,7 @@ class SimpleFacerec:
         filename = os.path.join(folder_path, f"{name}-{timestamp}.jpg")
 
         crop_img = frame[top:bottom, left:right]  # Color image
-        crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+        crop_img_gray = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)  # Convert to grayscale
 
         cv2.imwrite(filename, crop_img_gray)  # Save the grayscale image
         print(f"Saved cropped face to: {filename}")
